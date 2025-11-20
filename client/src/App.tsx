@@ -599,4 +599,18 @@ function App() {
   );
 }
 
-export default App;
+// AdMob Banner container for bottom
+function AdMobBanner() {
+  // This div is always present, styled to be fixed at bottom, height matches banner
+  // AdMob plugin will overlay the native banner above this, but this ensures space is reserved
+  return <div className="admob-banner-spacer" aria-hidden="true" />;
+}
+
+export default function AppWithBanner() {
+  return (
+    <div className="app-container">
+      <App />
+      <AdMobBanner />
+    </div>
+  );
+}

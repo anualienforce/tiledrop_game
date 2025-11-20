@@ -1,29 +1,29 @@
 /* Container and layout */
 .app-container {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+
   width: 100%;
-  height: auto;
-  min-height: 100vh;
-
+  height: 100vh;
+  height: 100dvh;
+  background: linear-gradient(135deg, #1e3a8a 0%, #0891b2 50%, #06b6d4 100%);
   display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: stretch;
+  flex-direction: column;      /* make column layout here itself */
+  justify-content: flex-start; /* ⬅ from center to top */
+  align-items: stretch;        /* ⬅ full-width instead of centering */
 
-  /* keep your background & padding, but remove scroll trap */
+  padding-top: var(--safe-top);
+  padding-bottom: var(--safe-bottom);
+  box-sizing: border-box;
+
   overflow-x: hidden;
-  overflow-y: visible;   /* let body handle scrolling */
+  overflow-y: auto;
 
   position: relative;
   top: auto;
   left: auto;
   right: auto;
   bottom: auto;
-}
-
-#root {
-  height: auto;
-  min-height: 100vh;
-  overflow: visible;     /* don't hide overflow here */
 }
 
 
@@ -49,18 +49,19 @@
     transform: scale(1.1);
   }
 }
+
 .game-wrapper {
   width: 100%;
-  /* min-height: 100%;  ⬅ remove this */
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
+  /* Respect top and bottom safe areas; add safe-bottom to the existing bottom padding */
   padding: 24px 12px calc(12px + var(--safe-bottom, 0px)) 12px;
   box-sizing: border-box;
   position: relative;
   z-index: 1;
 }
-
 
 /* HUD - Premium Design */
 .hud {
@@ -2516,12 +2517,10 @@ button:focus-visible,
 
 /* Prevent overscroll on mobile */
 html, body {
-  margin: 0;
-  padding: 0;
-  height: auto;          /* not forced 100% */
-  min-height: 100vh;
+  height: auto;
+  min-height: 100%;
   overflow-x: hidden;
-  overflow-y: auto;      /* page can scroll */
+  overflow-y: auto; /* 🔑 allow page scroll */
 }
 
 /* Ensure no horizontal overflow */
