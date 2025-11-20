@@ -5,8 +5,7 @@ import "./index.css";
 import { StatusBar, Style } from "@capacitor/status-bar";
 // Set viewport height CSS variable for mobile browsers
 // This handles address bar showing/hiding on mobile devices
-StatusBar.setOverlaysWebView({ overlay: false }); // pushes webview below status bar
-StatusBar.setStyle({ style: Style.Light });
+
 
 
 function setViewportHeight() {
