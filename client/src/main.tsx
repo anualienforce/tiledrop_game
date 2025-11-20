@@ -1,5 +1,5 @@
 import { createRoot } from "react-dom/client";
-import App from "./App";
+import AppWithBanner from "./App";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import "./index.css";
 import { StatusBar, Style } from "@capacitor/status-bar";
@@ -42,6 +42,6 @@ document.addEventListener('touchmove', (e) => {
 
 createRoot(document.getElementById("root")!).render(
   <ErrorBoundary>
-    <App />
+    <AppWithBanner />
   </ErrorBoundary>
 );

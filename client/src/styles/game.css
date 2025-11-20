@@ -1,3 +1,14 @@
+/* AdMob banner spacer at bottom */
+.admob-banner-spacer {
+  width: 100%;
+  height: 60px; /* Match expected AdMob banner height */
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  z-index: 100;
+  pointer-events: none;
+  background: transparent;
+}
 /* Container and layout */
 .app-container {
   --safe-top: env(safe-area-inset-top, 0px);
