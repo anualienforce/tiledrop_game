@@ -100,11 +100,30 @@ class AdMobService {
     const platform = Capacitor.getPlatform();
     const adId = platform === 'ios' ? AD_UNITS.banner.ios : AD_UNITS.banner.android;
 
+    // Determine the device safe-area bottom inset in pixels (if any) so the banner can be placed
+    // above the home indicator on modern iPhones. We create a temporary element that uses the
+    // CSS env(safe-area-inset-bottom) and read its computed height.
+    const getSafeAreaBottom = (): number => {
+      try {
+        const el = document.createElement('div');
+        el.style.cssText = 'position:fixed;bottom:0;height:env(safe-area-inset-bottom);width:0;pointer-events:none;opacity:0;';
+        document.body.appendChild(el);
+        const h = Math.round(el.getBoundingClientRect().height) || 0;
+        document.body.removeChild(el);
+        return h;
+      } catch (e) {
+        return 0;
+      }
+    };
+
+    const safeInset = getSafeAreaBottom();
+
     const options: BannerAdOptions = {
       adId,
       adSize: BannerAdSize.ADAPTIVE_BANNER,
       position: BannerAdPosition.BOTTOM_CENTER,
-      margin: 0,
+      // Use the safe inset as margin so the banner is moved up on devices with a home indicator
+      margin: safeInset,
     };
 
     console.log('Attempting to show banner ad:', { platform, adId, isInitialized: this.isInitialized });
