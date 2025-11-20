@@ -1,0 +1,43 @@
+workflows:
+  ios-simulator-workflow:
+    name: iOS Simulator Build
+    instance_type: mac_mini_m2
+    environment:
+      xcode: 15.4          # Use Xcode 15 on Codemagic
+      node: 20.10.0        # Or your Node version
+
+    scripts:
+      - name: Install Node packages
+        script: |
+          npm install
+
+      - name: Build web assets
+        script: |
+          npm run build
+
+      - name: Sync Capacitor iOS
+        script: |
+          npx cap sync ios
+
+      - name: Install CocoaPods
+        script: |
+          cd ios/App
+          pod install
+
+      - name: Build iOS simulator app (Debug)
+        script: |
+          cd ios/App
+          xcodebuild \
+            -workspace App.xcworkspace \
+            -scheme App \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -derivedDataPath ../build
+
+      - name: Verify architectures
+        script: |
+          APP_EXEC="ios/build/Build/Products/Debug-iphonesimulator/App.app/App"
+          lipo -info "$APP_EXEC"
+
+    artifacts:
+      - ios/build/Build/Products/Debug-iphonesimulator/*.app
