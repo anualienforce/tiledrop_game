@@ -1,82 +1,31 @@
-/* AdMob banner spacer at bottom */
-.admob-banner-spacer {
-  width: 100%;
-  height: 60px; /* Match expected AdMob banner height */
-  position: sticky;
-  bottom: 0;
-  left: 0;
-  z-index: 100;
-  pointer-events: none;
-  background: transparent;
-}
-
-/* Compact UI overrides for very small screens */
-.app-container.compact-ui .game-wrapper {
-  padding: 12px 8px calc(8px + var(--safe-bottom, 0px)) 8px;
-}
-
-.app-container.compact-ui .hud {
-  gap: 8px;
-}
-
-.app-container.compact-ui .card {
-  padding: 6px 8px;
-  border-radius: 10px;
-}
-
-.app-container.compact-ui .score-value {
-  font-size: clamp(16px, 4.5vw, 24px);
-}
-
-.app-container.compact-ui .tile.big {
-  width: calc(48px * 0.9);
-  height: calc(48px * 0.9);
-  font-size: 26px;
-}
-
-.app-container.compact-ui .tile.small {
-  width: calc(32px * 0.9);
-  height: calc(32px * 0.9);
-  font-size: 16px;
-}
-
-.app-container.compact-ui .button-bar {
-  padding: 10px 8px;
-  margin-bottom: -8px;
-}
-
-.app-container.compact-ui .powerups {
-  margin-bottom: calc(60px + var(--safe-bottom, 0px));
-}
 /* Container and layout */
 .app-container {
-  --safe-top: env(safe-area-inset-top, 0px);
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  /* Respect iOS safe-area insets (notch/status bar and home indicator)
+     We also expose CSS vars for easier composition in child elements. */
+  --safe-top: constant(safe-area-inset-top, 0);
+  --safe-top: env(safe-area-inset-top, 0);
+  --safe-bottom: constant(safe-area-inset-bottom, 0);
+  --safe-bottom: env(safe-area-inset-bottom, 0);
 
   width: 100%;
   height: 100vh;
-  height: 100dvh;
+  height: 100dvh; /* Dynamic viewport height for mobile */
   background: linear-gradient(135deg, #1e3a8a 0%, #0891b2 50%, #06b6d4 100%);
   display: flex;
-  flex-direction: column;      /* make column layout here itself */
-  justify-content: flex-start; /* ⬅ from center to top */
-  align-items: stretch;        /* ⬅ full-width instead of centering */
-
+  justify-content: center;
+  align-items: center;
+  /* Add safe area padding so top UI doesn't go under the status bar */
   padding-top: var(--safe-top);
   padding-bottom: var(--safe-bottom);
   box-sizing: border-box;
-
   overflow-x: hidden;
   overflow-y: auto;
-
-  position: relative;
-  top: auto;
-  left: auto;
-  right: auto;
-  bottom: auto;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
 }
-
-
 
 .app-container::before {
   content: '';
@@ -102,12 +51,12 @@
 
 .game-wrapper {
   width: 100%;
-  flex: 1 0 auto;
+  min-height: 100%;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  /* Respect top and bottom safe areas; reserve space for header and HUD at top */
-  padding: calc(var(--safe-top, 0px) + var(--header-height, 56px) + 12px) 12px calc(12px + var(--safe-bottom, 0px)) 12px;
+  /* Respect top and bottom safe areas; add safe-bottom to the existing bottom padding */
+  padding: 24px 12px calc(12px + var(--safe-bottom, 0px)) 12px;
   box-sizing: border-box;
   position: relative;
   z-index: 1;
@@ -119,10 +68,6 @@
   justify-content: space-between;
   margin-bottom: 16px;
   gap: 14px;
-  position: sticky;
-  top: calc(var(--safe-top, 0px) + var(--header-height, 56px));
-  z-index: 45;
-  background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0));
 }
 
 .card {
@@ -2273,35 +2218,21 @@
     overflow-x: hidden;
     overflow-y: auto;
     width: 100vw;
-    min-height: 100vh;
-    min-height: 100dvh;
-    position: relative;
+    height: 100vh;
+    height: 100dvh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
 
-    /* keep safe areas */
+    /* 🔑 keep safe-area padding */
     padding-top: max(0px, env(safe-area-inset-top));
-    padding-bottom: max(70px, env(safe-area-inset-bottom)); /* if you want extra for banner ad */
+    padding-bottom: max(70px, env(safe-area-inset-bottom)); /* if you want space for banner ad */
     padding-left: max(0px, env(safe-area-inset-left));
     padding-right: max(0px, env(safe-area-inset-right));
   }
 }
-
-@media (max-width: 768px) {
-  .app-container {
-    width: 100vw;
-    min-height: 100vh;
-    min-height: 100dvh;
-    overflow-x: hidden;
-    overflow-y: auto;
-    position: relative;
-
-    /* again, keep safe-area padding */
-    padding-top: max(0px, env(safe-area-inset-top));
-    padding-bottom: max(70px, env(safe-area-inset-bottom));
-    padding-left: max(0px, env(safe-area-inset-left));
-    padding-right: max(0px, env(safe-area-inset-right));
-  }
-}
-
 
 /* Tablet portrait mode - fixed layout */
 @media (min-width: 481px) and (max-width: 1024px) and (orientation: portrait) {
@@ -2570,11 +2501,9 @@ button:focus-visible,
 }
 
 /* Prevent overscroll on mobile */
-html, body {
-  height: auto;
-  min-height: 100%;
+body {
+  overscroll-behavior: none;
   overflow-x: hidden;
-  overflow-y: auto; /* 🔑 allow page scroll */
 }
 
 /* Ensure no horizontal overflow */
@@ -2603,12 +2532,10 @@ html {
   }
   
   .game-wrapper {
-  flex: 1;
-  overflow-y: auto;  /* 🔑 internal scroll if content > available height */
-  overflow-x: hidden;
-  padding-bottom: calc(90px + env(safe-area-inset-bottom, 0px)); 
-  /* 90px = your powerups + banner ad + safe area */
-}
+    padding-left: max(8px, calc(8px + env(safe-area-inset-left)));
+    padding-right: max(8px, calc(8px + env(safe-area-inset-right)));
+    padding-bottom: max(70px, calc(70px + env(safe-area-inset-bottom))); /* Space for banner ad */
+  }
 }
 
 /* Mute Button */
@@ -2811,21 +2738,17 @@ html {
 }
 
 .button-bar {
-  /* Keep the top controls visible when scrolling up */
-  position: sticky;
-  top: var(--safe-top, 0px);
+  position: relative;
+  top: 0;
   left: 0;
   right: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  z-index: 50;
-  padding: 12px 16px;
-  margin-bottom: 8px;
-  gap: 12px;
-  --header-height: 56px;
-  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0));
-  backdrop-filter: blur(6px);
+  z-index: 10;
+  padding: 14px 18px;
+  margin-bottom: -30px;
+  gap: 16px;
 }
 
 .game-title {
@@ -3235,21 +3158,24 @@ html {
 
 /* Touch action for drag-enabled tiles */
 .tile.big {
-  /* allow vertical scrolling when starting touch on tiles; horizontal drags still detected in JS */
-  touch-action: pan-y;
+  touch-action: none;
 }
 
 /* Mobile and Tablet layout adjustments - ensure perfect fit */
 @media (max-width: 768px) {
   .app-container {
     width: 100vw;
-    min-height: 100vh;
-    min-height: 100dvh;
+    height: 100vh;
+    height: 100dvh;
     overflow-x: hidden;
     overflow-y: auto;
-    position: relative;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
 
-    /* again, keep safe-area padding */
+    /* 🔑 again: keep safe-area padding here too */
     padding-top: max(0px, env(safe-area-inset-top));
     padding-bottom: max(70px, env(safe-area-inset-bottom));
     padding-left: max(0px, env(safe-area-inset-left));
@@ -3390,12 +3316,8 @@ html {
   }
   
   .game-wrapper {
-  flex: 1;
-  overflow-y: auto;  /* 🔑 internal scroll if content > available height */
-  overflow-x: hidden;
-  padding-bottom: calc(90px + env(safe-area-inset-bottom, 0px)); 
-  /* 90px = your powerups + banner ad + safe area */
-}
+    padding: 18px 6px 70px 6px; /* Extra bottom padding for banner ad */
+  }
 }
 
 /* Shop Modal - Mobile and Tablet Responsive */
