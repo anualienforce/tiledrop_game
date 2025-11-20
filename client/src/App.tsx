@@ -48,6 +48,7 @@ function App() {
   // Drag-and-drop state
   const gameBoardRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isCompact, setIsCompact] = useState(false);
   const [hoveredColumn, setHoveredColumn] = useState<number | null>(null);
   const [dragPosition, setDragPosition] = useState<{ x: number; y: number } | null>(null);
   const [columnPositions, setColumnPositions] = useState<{ col: number; left: number; right: number }[]>([]);
@@ -262,6 +263,17 @@ function App() {
     }
   }, [comboMultiplier, trackEvent]);
 
+  // Compact UI for small devices
+  useEffect(() => {
+    const checkCompact = () => {
+      const w = window.innerWidth;
+      setIsCompact(w <= 390);
+    };
+    checkCompact();
+    window.addEventListener('resize', checkCompact);
+    return () => window.removeEventListener('resize', checkCompact);
+  }, []);
+
   // Wrap restart and power-up functions with analytics
   const handleRestartWithAnalytics = () => {
     trackEvent('game_start');
@@ -278,27 +290,45 @@ function App() {
   const handleDragStart = (e: React.PointerEvent) => {
     if (gameOver || isPaused || !currentTile) return;
     
-    const startX = e.clientX;
-    const startY = e.clientY;
+  const startX = e.clientX;
+  const startY = e.clientY;
     
     setDragStartPos({ x: startX, y: startY });
     setDragPosition({ x: startX, y: startY });
     
-    let hasMoved = false;
-    const MOVE_THRESHOLD = 5; // pixels
+  let hasMoved = false;
+  const MOVE_THRESHOLD = 8; // pixels
+  let isPotentialScroll = false; // true when vertical movement dominates
     
     // Set up window-level listeners for drag
     const handleMove = (moveEvent: PointerEvent) => {
-      const deltaX = Math.abs(moveEvent.clientX - startX);
-      const deltaY = Math.abs(moveEvent.clientY - startY);
-      
-      // Only start showing drag if moved beyond threshold
-      if (deltaX > MOVE_THRESHOLD || deltaY > MOVE_THRESHOLD) {
+      const deltaX = moveEvent.clientX - startX;
+      const deltaY = moveEvent.clientY - startY;
+      const absX = Math.abs(deltaX);
+      const absY = Math.abs(deltaY);
+
+      // If vertical movement is dominant and exceeded threshold, treat as scroll and cancel drag
+      if (!hasMoved && absY > MOVE_THRESHOLD && absY > absX) {
+        isPotentialScroll = true;
+        // cleanup and do not start drag — allow native scrolling
+        window.removeEventListener('pointermove', handleMove);
+        window.removeEventListener('pointerup', handleEnd);
+        window.removeEventListener('pointercancel', handleEnd);
+        setDragStartPos(null);
+        setDragPosition(null);
+        setHoveredColumn(null);
+        return;
+      }
+
+      // Only start showing drag if moved beyond threshold and horizontal movement dominates
+      if (!hasMoved && absX > MOVE_THRESHOLD && absX > absY) {
         hasMoved = true;
         setIsDragging(true);
       }
-      
-      setDragPosition({ x: moveEvent.clientX, y: moveEvent.clientY });
+
+      if (!isPotentialScroll) {
+        setDragPosition({ x: moveEvent.clientX, y: moveEvent.clientY });
+      }
       
       // Calculate which column the pointer is over using grid bounds
       const gridElement = document.querySelector('.grid') as HTMLElement;
@@ -321,7 +351,7 @@ function App() {
     };
     
     const handleEnd = (endEvent: PointerEvent) => {
-      setIsDragging(false);
+  setIsDragging(false);
       setDragPosition(null);
       setDragStartPos(null);
       
@@ -373,7 +403,7 @@ function App() {
   }
 
   return (
-    <div className={`app-container ${highContrastMode ? 'high-contrast' : ''} ${reducedMotion ? 'reduced-motion' : ''}`}>
+    <div className={`app-container ${highContrastMode ? 'high-contrast' : ''} ${reducedMotion ? 'reduced-motion' : ''} ${isCompact ? 'compact-ui' : ''}`}>
       <div 
         className="mobile-scale-wrapper"
         style={{
@@ -437,7 +467,8 @@ function App() {
             }
             handleDragStart(e);
           }}
-          style={{ touchAction: 'none' }}
+          // allow vertical native scrolling while still handling horizontal drags
+          style={{ touchAction: 'pan-y' }}
         >
         <HUD 
           score={score}

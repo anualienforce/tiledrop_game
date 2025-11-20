@@ -9,6 +9,45 @@
   pointer-events: none;
   background: transparent;
 }
+
+/* Compact UI overrides for very small screens */
+.app-container.compact-ui .game-wrapper {
+  padding: 12px 8px calc(8px + var(--safe-bottom, 0px)) 8px;
+}
+
+.app-container.compact-ui .hud {
+  gap: 8px;
+}
+
+.app-container.compact-ui .card {
+  padding: 6px 8px;
+  border-radius: 10px;
+}
+
+.app-container.compact-ui .score-value {
+  font-size: clamp(16px, 4.5vw, 24px);
+}
+
+.app-container.compact-ui .tile.big {
+  width: calc(48px * 0.9);
+  height: calc(48px * 0.9);
+  font-size: 26px;
+}
+
+.app-container.compact-ui .tile.small {
+  width: calc(32px * 0.9);
+  height: calc(32px * 0.9);
+  font-size: 16px;
+}
+
+.app-container.compact-ui .button-bar {
+  padding: 10px 8px;
+  margin-bottom: -8px;
+}
+
+.app-container.compact-ui .powerups {
+  margin-bottom: calc(60px + var(--safe-bottom, 0px));
+}
 /* Container and layout */
 .app-container {
   --safe-top: env(safe-area-inset-top, 0px);
