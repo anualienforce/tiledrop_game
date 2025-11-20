@@ -48,7 +48,6 @@ function App() {
   // Drag-and-drop state
   const gameBoardRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [isCompact, setIsCompact] = useState(false);
   const [hoveredColumn, setHoveredColumn] = useState<number | null>(null);
   const [dragPosition, setDragPosition] = useState<{ x: number; y: number } | null>(null);
   const [columnPositions, setColumnPositions] = useState<{ col: number; left: number; right: number }[]>([]);
@@ -263,17 +262,6 @@ function App() {
     }
   }, [comboMultiplier, trackEvent]);
 
-  // Compact UI for small devices
-  useEffect(() => {
-    const checkCompact = () => {
-      const w = window.innerWidth;
-      setIsCompact(w <= 390);
-    };
-    checkCompact();
-    window.addEventListener('resize', checkCompact);
-    return () => window.removeEventListener('resize', checkCompact);
-  }, []);
-
   // Wrap restart and power-up functions with analytics
   const handleRestartWithAnalytics = () => {
     trackEvent('game_start');
@@ -290,45 +278,27 @@ function App() {
   const handleDragStart = (e: React.PointerEvent) => {
     if (gameOver || isPaused || !currentTile) return;
     
-  const startX = e.clientX;
-  const startY = e.clientY;
+    const startX = e.clientX;
+    const startY = e.clientY;
     
     setDragStartPos({ x: startX, y: startY });
     setDragPosition({ x: startX, y: startY });
     
-  let hasMoved = false;
-  const MOVE_THRESHOLD = 8; // pixels
-  let isPotentialScroll = false; // true when vertical movement dominates
+    let hasMoved = false;
+    const MOVE_THRESHOLD = 5; // pixels
     
     // Set up window-level listeners for drag
     const handleMove = (moveEvent: PointerEvent) => {
-      const deltaX = moveEvent.clientX - startX;
-      const deltaY = moveEvent.clientY - startY;
-      const absX = Math.abs(deltaX);
-      const absY = Math.abs(deltaY);
-
-      // If vertical movement is dominant and exceeded threshold, treat as scroll and cancel drag
-      if (!hasMoved && absY > MOVE_THRESHOLD && absY > absX) {
-        isPotentialScroll = true;
-        // cleanup and do not start drag — allow native scrolling
-        window.removeEventListener('pointermove', handleMove);
-        window.removeEventListener('pointerup', handleEnd);
-        window.removeEventListener('pointercancel', handleEnd);
-        setDragStartPos(null);
-        setDragPosition(null);
-        setHoveredColumn(null);
-        return;
-      }
-
-      // Only start showing drag if moved beyond threshold and horizontal movement dominates
-      if (!hasMoved && absX > MOVE_THRESHOLD && absX > absY) {
+      const deltaX = Math.abs(moveEvent.clientX - startX);
+      const deltaY = Math.abs(moveEvent.clientY - startY);
+      
+      // Only start showing drag if moved beyond threshold
+      if (deltaX > MOVE_THRESHOLD || deltaY > MOVE_THRESHOLD) {
         hasMoved = true;
         setIsDragging(true);
       }
-
-      if (!isPotentialScroll) {
-        setDragPosition({ x: moveEvent.clientX, y: moveEvent.clientY });
-      }
+      
+      setDragPosition({ x: moveEvent.clientX, y: moveEvent.clientY });
       
       // Calculate which column the pointer is over using grid bounds
       const gridElement = document.querySelector('.grid') as HTMLElement;
@@ -351,7 +321,7 @@ function App() {
     };
     
     const handleEnd = (endEvent: PointerEvent) => {
-  setIsDragging(false);
+      setIsDragging(false);
       setDragPosition(null);
       setDragStartPos(null);
       
@@ -403,7 +373,7 @@ function App() {
   }
 
   return (
-    <div className={`app-container ${highContrastMode ? 'high-contrast' : ''} ${reducedMotion ? 'reduced-motion' : ''} ${isCompact ? 'compact-ui' : ''}`}>
+    <div className={`app-container ${highContrastMode ? 'high-contrast' : ''} ${reducedMotion ? 'reduced-motion' : ''}`}>
       <div 
         className="mobile-scale-wrapper"
         style={{
@@ -467,8 +437,7 @@ function App() {
             }
             handleDragStart(e);
           }}
-          // allow vertical native scrolling while still handling horizontal drags
-          style={{ touchAction: 'pan-y' }}
+          style={{ touchAction: 'none' }}
         >
         <HUD 
           score={score}
@@ -630,18 +599,4 @@ function App() {
   );
 }
 
-// AdMob Banner container for bottom
-function AdMobBanner() {
-  // This div is always present, styled to be fixed at bottom, height matches banner
-  // AdMob plugin will overlay the native banner above this, but this ensures space is reserved
-  return <div className="admob-banner-spacer" aria-hidden="true" />;
-}
-
-export default function AppWithBanner() {
-  return (
-    <div className="app-container">
-      <App />
-      <AdMobBanner />
-    </div>
-  );
-}
+export default App;
